@@ -63,7 +63,7 @@ export async function parseWithGemini(
 
   try {
     const genai = new GoogleGenerativeAI(apiKey)
-    const model = genai.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genai.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     const result = await model.generateContent([
       {
