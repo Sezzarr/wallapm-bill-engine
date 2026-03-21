@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/src/lib/supabase'
+import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 import { parseWithGemini } from '@/src/lib/gemini-parser'
 
 const SUPPORTED_MIME_TYPES = new Set([

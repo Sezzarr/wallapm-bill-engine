@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/src/lib/supabase'
+import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 import { matchBillToProperty } from '@/src/lib/property-matcher'
 
 export async function POST(

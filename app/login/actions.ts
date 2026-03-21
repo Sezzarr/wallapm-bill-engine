@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/src/lib/supabase'
+import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 
 export async function login(
   _prev: { error: string },

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/src/lib/supabase'
+import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 
 // Handles the OAuth / magic-link callback from Supabase.
 // Supabase redirects here with ?code=<pkce_code> after the user authenticates.

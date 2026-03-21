@@ -1,0 +1,20 @@
+ISA*00*          *00*          *ZZ*PGANDE         *ZZ*ACMEPROP       *260315*1200*^*00501*000000001*0*T*:~
+GS*IN*PGANDE*ACMEPROP*20260315*1200*1*X*005010~
+ST*810*0001~
+BIG*20260215*INV-2026-02-0047~
+REF*AN*4712839201~
+DTM*106*20260115~
+DTM*091*20260214~
+N1*SE*Pacific Gas and Electric Co*91*PGANDE~
+N3*77 Beale Street~
+N4*San Francisco*CA*94105~
+N1*BY*Acme Property Management LLC*92*ACMEPROP~
+N3*100 Brannan Street Suite 200~
+N4*San Francisco*CA*94107~
+IT1*1*1*EA*187.43**BP*Electric Supply Charges~
+IT1*2*1*EA*23.17**BP*Electric Delivery Charges~
+IT1*3*1*EA*15.42**BP*State Taxes and Surcharges~
+TDS*22602~
+SE*16*0001~
+GE*1*1~
+IEA*1*000000001~

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/src/lib/supabase'
+import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 import { parseEdi } from '@/src/lib/edi-parser'
 
 export async function POST(request: NextRequest) {
