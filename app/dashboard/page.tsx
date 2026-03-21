@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/src/lib/supabase'
 import UploadModal from '@/app/components/UploadModal'
@@ -60,6 +60,7 @@ type Filter = typeof FILTERS[number]
 
 export default function DashboardPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = createClient()
 
   const [bills, setBills] = useState<Bill[]>([])
@@ -105,16 +106,34 @@ export default function DashboardPage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500 text-xs font-black text-white">
               W
             </div>
             <span className="font-semibold tracking-tight text-zinc-100">WallaPM</span>
-            <span className="text-zinc-700">/</span>
-            <span className="text-sm text-zinc-500">Bill Engine</span>
           </div>
-          <div className="flex items-center gap-3">
+
+          <nav className="flex items-center gap-1">
+            {([
+              { href: '/dashboard', label: 'Bills' },
+              { href: '/dashboard/properties', label: 'Properties' },
+            ] as const).map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                  pathname === href
+                    ? 'bg-zinc-800 text-zinc-100'
+                    : 'text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-xs text-zinc-600 sm:block">{email}</span>
             <button
               onClick={handleSignOut}
