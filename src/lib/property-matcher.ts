@@ -124,5 +124,5 @@ export async function matchBillToProperty(
     })
   }
 
-  return { property_id, status: property_id ? 'processed' : status, method }
+  return { property_id, status: property_id ? 'processed' : 'unmatched', method }
 }
