@@ -4,7 +4,7 @@ export type MatchMethod = 'account_number' | 'address' | null
 
 export interface MatchResult {
   property_id: string | null
-  status: 'matched' | 'unmatched'
+  status: 'processed' | 'unmatched'
   method: MatchMethod
 }
 
@@ -110,5 +110,19 @@ export async function matchBillToProperty(
       : 'No matching property found',
   })
 
-  return { property_id, status, method }
+  if (property_id) {
+    await supabase
+      .from('bills')
+      .update({ status: 'processed' })
+      .eq('id', billId)
+      .eq('user_id', userId)
+
+    await supabase.from('bill_status_log').insert({
+      bill_id: billId,
+      status: 'processed',
+      note: 'Bill processed after successful property match',
+    })
+  }
+
+  return { property_id, status: property_id ? 'processed' : status, method }
 }

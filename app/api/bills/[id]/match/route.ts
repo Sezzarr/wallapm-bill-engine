@@ -38,7 +38,7 @@ export async function POST(
     // Manual assignment — verify the property belongs to this user first.
     const { data: property, error: propError } = await supabase
       .from('properties')
-      .select('id')
+      .select('id, name')
       .eq('id', body.property_id)
       .eq('user_id', user.id)
       .single()
@@ -60,26 +60,23 @@ export async function POST(
       )
     }
 
-    const { error: logError } = await supabase.from('bill_status_log').insert({
+    await supabase.from('bill_status_log').insert({
       bill_id: billId,
       status: 'matched',
-      note: `Manually matched to property ${body.property_id}`,
+      note: `Manually matched to property: ${property.name}`,
     })
 
-    if (logError) {
-      // Non-fatal — proceed and return the updated bill with a warning.
-      const { data: updatedBill } = await supabase
-        .from('bills')
-        .select('*')
-        .eq('id', billId)
-        .eq('user_id', user.id)
-        .single()
+    await supabase
+      .from('bills')
+      .update({ status: 'processed' })
+      .eq('id', billId)
+      .eq('user_id', user.id)
 
-      return NextResponse.json(
-        { bill: updatedBill, warning: 'Bill updated but status log entry failed' },
-        { status: 200 },
-      )
-    }
+    await supabase.from('bill_status_log').insert({
+      bill_id: billId,
+      status: 'processed',
+      note: 'Bill processed after successful property match',
+    })
   } else {
     // Auto-match using account_number from the bill and optional address hint
     // from the request body.
