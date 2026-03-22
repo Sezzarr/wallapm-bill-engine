@@ -39,6 +39,10 @@ export async function POST(request: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     fileBuffer = Buffer.from(arrayBuffer)
+
+    if (fileBuffer.length === 0) {
+      return NextResponse.json({ error: 'The uploaded file is empty.' }, { status: 400 })
+    }
   } catch {
     return NextResponse.json({ error: 'Failed to read uploaded file' }, { status: 400 })
   }
@@ -49,6 +53,18 @@ export async function POST(request: NextRequest) {
   }
 
   const { bill: parsed } = result
+
+  if (
+    (parsed.confidence_score === 0 || parsed.confidence_score == null) &&
+    parsed.vendor == null &&
+    parsed.amount == null &&
+    parsed.account_number == null
+  ) {
+    return NextResponse.json(
+      { error: 'Could not extract bill data from this file. Please make sure it is a utility bill and try again.' },
+      { status: 422 },
+    )
+  }
 
   const { data: bill, error: insertError } = await supabase
     .from('bills')

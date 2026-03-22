@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/src/lib/supabase-server'
 import { parseEdi } from '@/src/lib/edi-parser'
 
+// MIME types that are clearly not EDI text files — catch the most common wrong-file mistakes.
+const REJECTED_MIME_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+  'image/bmp',
+  'image/tiff',
+])
+
 export async function POST(request: NextRequest) {
   const supabase = await createServerSupabaseClient()
 
@@ -19,7 +33,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing file field in form data' }, { status: 400 })
     }
 
-    ediText = await file.text()
+    const mimeType = (file as File).type || ''
+    if (REJECTED_MIME_TYPES.has(mimeType)) {
+      return NextResponse.json(
+        { error: `Invalid file type: "${mimeType}". EDI files must be plain text (.edi, .x12, .835, .810, .txt).` },
+        { status: 415 },
+      )
+    }
+
+    ediText = await (file as File).text()
+
+    if (!ediText.trim()) {
+      return NextResponse.json({ error: 'The uploaded file is empty.' }, { status: 400 })
+    }
   } catch {
     return NextResponse.json({ error: 'Failed to read uploaded file' }, { status: 400 })
   }

@@ -17,6 +17,18 @@ const TABS: { value: Tab; label: string; sub: string }[] = [
   { value: 'ocr', label: 'PDF / Image', sub: 'Gemini Flash OCR' },
 ]
 
+// MIME types that are clearly not EDI — used for client-side validation before the upload starts.
+const EDI_REJECTED_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+  'image/webp', 'image/heic', 'image/heif', 'image/bmp', 'image/tiff',
+])
+
+const OCR_SUPPORTED_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif',
+])
+
 export default function UploadModal({
   onClose,
   onSuccess,
@@ -55,6 +67,24 @@ export default function UploadModal({
 
   const upload = useCallback(async () => {
     if (!file) return
+
+    // Client-side validation — catch wrong file types before touching the network.
+    if (file.size === 0) {
+      setState({ phase: 'error', message: 'The selected file is empty. Please choose a file with content.' })
+      return
+    }
+
+    if (tab === 'edi' && EDI_REJECTED_TYPES.has(file.type)) {
+      const ext = file.name.split('.').pop()?.toUpperCase() ?? file.type
+      setState({ phase: 'error', message: `"${file.name}" is a ${ext} file, not an EDI file. Switch to the PDF / Image tab, or upload a plain text EDI file (.edi, .x12, .835, .810, .txt).` })
+      return
+    }
+
+    if (tab === 'ocr' && file.type && !OCR_SUPPORTED_TYPES.has(file.type)) {
+      setState({ phase: 'error', message: `"${file.name}" is not supported. Please upload a PDF, JPEG, PNG, WebP, or HEIC file.` })
+      return
+    }
+
     setState({ phase: 'uploading', progress: 20 })
 
     const body = new FormData()
@@ -65,15 +95,23 @@ export default function UploadModal({
       setState({ phase: 'uploading', progress: 55 })
       const res = await fetch(endpoint, { method: 'POST', body })
       setState({ phase: 'uploading', progress: 90 })
-      const data = await res.json()
+
+      // Parse the response body independently — a failed JSON parse should not
+      // swallow the actual HTTP error status.
+      let data: { error?: string; bill?: { id: string } } = {}
+      try {
+        data = await res.json()
+      } catch {
+        // Non-JSON response body — fall through to the !res.ok check below.
+      }
 
       if (!res.ok) {
-        setState({ phase: 'error', message: data.error ?? `Upload failed (${res.status})` })
+        setState({ phase: 'error', message: data.error ?? `Upload failed (HTTP ${res.status})` })
         return
       }
-      setState({ phase: 'success', billId: data.bill.id })
+      setState({ phase: 'success', billId: data.bill!.id })
     } catch (err) {
-      setState({ phase: 'error', message: err instanceof Error ? err.message : 'Network error' })
+      setState({ phase: 'error', message: err instanceof Error ? err.message : 'Network error — please check your connection and try again.' })
     }
   }, [file, tab])
 
@@ -92,7 +130,7 @@ export default function UploadModal({
       />
 
       {/* Sheet */}
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-md overflow-y-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl shadow-black/60" style={{ maxHeight: 'min(90vh, 700px)' }}>
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
@@ -233,11 +271,19 @@ export default function UploadModal({
 
               {/* Error */}
               {state.phase === 'error' && (
-                <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-red-900/40 bg-red-950/40 px-3.5 py-3">
-                  <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-red-400">{state.message}</p>
+                <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3.5 ring-1 ring-inset ring-red-500/20">
+                  <div className="flex items-start gap-3">
+                    <svg className="mt-0.5 h-4 w-4 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm font-medium leading-snug text-red-300">{state.message}</p>
+                  </div>
+                  <button
+                    onClick={() => { setFile(null); setState({ phase: 'idle' }); if (inputRef.current) inputRef.current.value = '' }}
+                    className="mt-3 text-xs font-medium text-red-400 underline underline-offset-2 hover:text-red-300 transition"
+                  >
+                    Try a different file
+                  </button>
                 </div>
               )}
 
