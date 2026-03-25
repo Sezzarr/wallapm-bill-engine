@@ -186,44 +186,54 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Toolbar ── */}
-        <div className="mb-5 flex items-center gap-2">
-          <div className="min-w-0 flex-1 overflow-x-auto">
-            <nav className="flex w-max items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
-              {FILTERS.map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                    filter === f
-                      ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
-                      : 'text-zinc-500 hover:text-zinc-300'
-                  }`}
-                >
-                  {f}
-                </button>
-              ))}
-            </nav>
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+
+          {/* Filter pills — scrolls horizontally on mobile with a fade hint */}
+          <div className="relative min-w-0 flex-1">
+            <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <nav className="flex w-max items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
+                {FILTERS.map(f => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                      filter === f
+                        ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
+                        : 'text-zinc-500 hover:text-zinc-300'
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </nav>
+            </div>
+            {/* Fade gradient — only visible on mobile when pills overflow */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-lg bg-gradient-to-l from-zinc-950 to-transparent sm:hidden" />
           </div>
-          <button
-            onClick={handleExport}
-            disabled={filtered.length === 0}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 sm:px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span className="hidden sm:inline">Export CSV</span>
-            <span className="sm:hidden">Export</span>
-          </button>
-          <button
-            onClick={() => setShowModal(true)}
-            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
-          >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-            </svg>
-            Upload
-          </button>
+
+          {/* Action buttons — right-aligned on mobile, inline on desktop */}
+          <div className="flex shrink-0 items-center justify-end gap-2">
+            <button
+              onClick={handleExport}
+              disabled={filtered.length === 0}
+              className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">Export</span>
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Upload
+            </button>
+          </div>
         </div>
 
         {/* ── Bill list ── */}
