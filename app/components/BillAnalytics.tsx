@@ -183,7 +183,8 @@ export default function BillAnalytics({ bills }: { bills: Bill[] }) {
                   content={({ viewBox }) => {
                     const pv = viewBox as { cx?: number; cy?: number } | undefined
                     if (!Number.isFinite(pv?.cx) || !Number.isFinite(pv?.cy)) return null
-                    const { cx, cy } = pv
+                    const cx = pv?.cx ?? 0
+                    const cy = pv?.cy ?? 0
                     return (
                       <text textAnchor="middle">
                         <tspan x={cx} y={cy - 6} fill="#e4e4e7" fontSize={22} fontWeight={600}>

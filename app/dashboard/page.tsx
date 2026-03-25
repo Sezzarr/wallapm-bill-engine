@@ -83,6 +83,10 @@ export default function DashboardPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [analyticsOpen, setAnalyticsOpen] = useState(true)
+  const [search, setSearch] = useState('')
+  const [utilityFilter, setUtilityFilter] = useState('all')
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
 
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -105,8 +109,38 @@ export default function DashboardPage() {
     router.push('/login')
   }
 
-  const filtered = filter === 'all' ? bills : bills.filter(b => b.status === filter)
   const propMap = Object.fromEntries(properties.map(p => [p.id, p.name]))
+
+  const filtered = bills
+    .filter(b => filter === 'all' || b.status === filter)
+    .filter(b => utilityFilter === 'all' || b.utility_type === utilityFilter)
+    .filter(b => {
+      const q = search.trim().toLowerCase()
+      if (!q) return true
+      const propName = b.property_id ? (propMap[b.property_id] ?? '') : ''
+      return (
+        (b.vendor ?? '').toLowerCase().includes(q) ||
+        (b.account_number ?? '').toLowerCase().includes(q) ||
+        propName.toLowerCase().includes(q)
+      )
+    })
+    .filter(b => {
+      const min = parseFloat(minAmount)
+      const max = parseFloat(maxAmount)
+      if (!isNaN(min) && (b.amount ?? 0) < min) return false
+      if (!isNaN(max) && (b.amount ?? 0) > max) return false
+      return true
+    })
+
+  const isFiltered = filter !== 'all' || search.trim() !== '' || utilityFilter !== 'all' || minAmount !== '' || maxAmount !== ''
+
+  const clearFilters = () => {
+    setFilter('all')
+    setSearch('')
+    setUtilityFilter('all')
+    setMinAmount('')
+    setMaxAmount('')
+  }
 
   const counts = {
     total: bills.length,
@@ -229,55 +263,136 @@ export default function DashboardPage() {
         )}
 
         {/* ── Toolbar ── */}
-        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="mb-4 space-y-2">
 
-          {/* Filter pills — scrolls horizontally on mobile with a fade hint */}
-          <div className="relative min-w-0 flex-1">
-            <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <nav className="flex w-max items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
-                {FILTERS.map(f => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                      filter === f
-                        ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </nav>
+          {/* Row 1: status pills + action buttons */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative min-w-0 flex-1">
+              <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <nav className="flex w-max items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
+                  {FILTERS.map(f => (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(f)}
+                      className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                        filter === f
+                          ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {f}
+                    </button>
+                  ))}
+                </nav>
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-lg bg-gradient-to-l from-zinc-950 to-transparent sm:hidden" />
             </div>
-            {/* Fade gradient — only visible on mobile when pills overflow */}
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-lg bg-gradient-to-l from-zinc-950 to-transparent sm:hidden" />
+            <div className="flex shrink-0 items-center justify-end gap-2">
+              <button
+                onClick={handleExport}
+                disabled={filtered.length === 0}
+                className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span className="hidden sm:inline">Export CSV</span>
+                <span className="sm:hidden">Export</span>
+              </button>
+              <button
+                onClick={() => setShowModal(true)}
+                className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Upload
+              </button>
+            </div>
           </div>
 
-          {/* Action buttons — right-aligned on mobile, inline on desktop */}
-          <div className="flex shrink-0 items-center justify-end gap-2">
-            <button
-              onClick={handleExport}
-              disabled={filtered.length === 0}
-              className="flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          {/* Row 2: search + utility type + amount range */}
+          <div className="flex flex-col gap-2 sm:flex-row">
+
+            {/* Search */}
+            <div className="relative flex-1">
+              <svg className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="hidden sm:inline">Export CSV</span>
-              <span className="sm:hidden">Export</span>
-            </button>
-            <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Upload
-            </button>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search vendor, account, property…"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 py-2 pl-9 pr-8 text-sm text-zinc-200 placeholder:text-zinc-600 outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700/50"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded text-zinc-600 transition hover:text-zinc-300"
+                  aria-label="Clear search"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* Utility type + amount range */}
+            <div className="flex gap-2">
+              <select
+                value={utilityFilter}
+                onChange={e => setUtilityFilter(e.target.value)}
+                className="flex-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700/50 sm:flex-none"
+              >
+                <option value="all">All types</option>
+                <option value="electric">Electric</option>
+                <option value="gas">Gas</option>
+                <option value="water">Water</option>
+                <option value="telecom">Telecom</option>
+                <option value="waste">Waste</option>
+              </select>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={minAmount}
+                onChange={e => setMinAmount(e.target.value)}
+                placeholder="Min $"
+                className="w-24 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700/50"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={maxAmount}
+                onChange={e => setMaxAmount(e.target.value)}
+                placeholder="Max $"
+                className="w-24 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-300 placeholder:text-zinc-600 outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700/50"
+              />
+            </div>
           </div>
         </div>
+
+        {/* ── Results count + clear ── */}
+        {!loading && isFiltered && (
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs text-zinc-500">
+              {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+              {filtered.length < bills.length && (
+                <span className="text-zinc-700"> of {bills.length}</span>
+              )}
+            </p>
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 text-xs text-zinc-600 transition hover:text-zinc-300"
+            >
+              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear filters
+            </button>
+          </div>
+        )}
 
         {/* ── Bill list ── */}
         {loading ? (
@@ -291,10 +406,21 @@ export default function DashboardPage() {
             <svg className="mx-auto mb-3 h-8 w-8 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-sm text-zinc-600">No bills found.</p>
-            <button onClick={() => setShowModal(true)} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">
-              Upload your first bill
-            </button>
+            {isFiltered ? (
+              <>
+                <p className="text-sm text-zinc-600">No bills match your filters.</p>
+                <button onClick={clearFilters} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">
+                  Clear filters
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-zinc-600">No bills found.</p>
+                <button onClick={() => setShowModal(true)} className="mt-3 text-sm text-indigo-400 hover:text-indigo-300">
+                  Upload your first bill
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-1.5">
