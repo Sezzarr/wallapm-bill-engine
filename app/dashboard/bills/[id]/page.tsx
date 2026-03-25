@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/src/lib/supabase'
@@ -18,6 +18,7 @@ type Bill = {
   source: string | null
   raw_payload: Record<string, unknown> | null
   confidence_score: number | null
+  notes: string | null
   created_at: string
 }
 
@@ -77,6 +78,10 @@ export default function BillDetailPage() {
   const [assignError, setAssignError] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [notesDraft, setNotesDraft] = useState('')
+  const [notesSaveState, setNotesSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isFirstNotesRender = useRef(true)
 
   const load = async () => {
     const [{ data: b }, { data: l }, { data: p }] = await Promise.all([
@@ -87,6 +92,8 @@ export default function BillDetailPage() {
     if (!b) { router.push('/dashboard'); return }
     setBill(b)
     setPickedProp(b.property_id ?? '')
+    setNotesDraft(b.notes ?? '')
+    isFirstNotesRender.current = true
     setLog(l ?? [])
     setProperties(p ?? [])
     setLoading(false)
@@ -131,6 +138,32 @@ export default function BillDetailPage() {
       setShowDeleteConfirm(false)
     }
   }
+
+  const saveNotes = useCallback(async (value: string) => {
+    setNotesSaveState('saving')
+    try {
+      const res = await fetch(`/api/bills/${id}/notes`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: value }),
+      })
+      if (res.ok) {
+        setNotesSaveState('saved')
+        setTimeout(() => setNotesSaveState(s => s === 'saved' ? 'idle' : s), 2000)
+      } else {
+        setNotesSaveState('idle')
+      }
+    } catch {
+      setNotesSaveState('idle')
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (isFirstNotesRender.current) { isFirstNotesRender.current = false; return }
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current)
+    notesTimerRef.current = setTimeout(() => saveNotes(notesDraft), 2000)
+    return () => { if (notesTimerRef.current) clearTimeout(notesTimerRef.current) }
+  }, [notesDraft, saveNotes])
 
   if (loading) {
     return (
@@ -304,6 +337,41 @@ export default function BillDetailPage() {
                   })}
                 </ol>
               )}
+            </section>
+
+            {/* Notes */}
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Notes</h2>
+                {notesSaveState === 'saved' && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-500">
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Saved
+                  </span>
+                )}
+                {notesSaveState === 'saving' && (
+                  <span className="text-xs text-zinc-600">Saving…</span>
+                )}
+              </div>
+              <textarea
+                value={notesDraft}
+                onChange={e => setNotesDraft(e.target.value)}
+                placeholder="Add internal notes about this bill…"
+                rows={4}
+                className="w-full resize-none rounded-lg border border-zinc-700/60 bg-zinc-800/50 px-3 py-2.5 text-sm text-zinc-300 placeholder:text-zinc-600 outline-none transition focus:border-zinc-600 focus:ring-1 focus:ring-zinc-600/30"
+              />
+              <button
+                onClick={() => {
+                  if (notesTimerRef.current) clearTimeout(notesTimerRef.current)
+                  saveNotes(notesDraft)
+                }}
+                disabled={notesSaveState === 'saving'}
+                className="mt-3 rounded-lg border border-zinc-700 px-4 py-1.5 text-xs font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-40"
+              >
+                Save notes
+              </button>
             </section>
 
           </div>
