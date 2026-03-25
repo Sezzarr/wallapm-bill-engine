@@ -69,6 +69,8 @@ export default function DashboardPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const [showModal, setShowModal] = useState(false)
   const [email, setEmail] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -99,6 +101,16 @@ export default function DashboardPage() {
     pending: bills.filter(b => b.status === 'pending').length,
     matched: bills.filter(b => b.status === 'matched').length,
     processed: bills.filter(b => b.status === 'processed').length,
+  }
+
+  const handleDeleteBill = async (id: string) => {
+    setDeletingId(id)
+    const res = await fetch(`/api/bills/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setBills(prev => prev.filter(b => b.id !== id))
+      setConfirmDeleteId(null)
+    }
+    setDeletingId(null)
   }
 
   const handleExport = () => {
@@ -262,48 +274,88 @@ export default function DashboardPage() {
               const propName = bill.property_id ? propMap[bill.property_id] : null
 
               return (
-                <Link
+                <div
                   key={bill.id}
-                  href={`/dashboard/bills/${bill.id}`}
-                  className="group flex items-center gap-3 sm:gap-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 sm:px-5 py-3.5 transition hover:border-zinc-700 hover:bg-zinc-900"
+                  className="group flex items-stretch rounded-xl border border-zinc-800/60 bg-zinc-900/40 transition hover:border-zinc-700 hover:bg-zinc-900"
                 >
-                  {/* Utility glyph */}
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-xs font-bold text-zinc-400">
-                    {glyph}
-                  </div>
-
-                  {/* Info */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="truncate text-sm font-medium text-zinc-100">
-                        {bill.vendor ?? 'Unknown vendor'}
-                      </span>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${status.badge}`}>
-                        {status.label}
-                      </span>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${src.cls}`}>
-                        {src.text}
-                      </span>
+                  {/* Clickable area → bill detail */}
+                  <Link
+                    href={`/dashboard/bills/${bill.id}`}
+                    className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5"
+                  >
+                    {/* Utility glyph */}
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-xs font-bold text-zinc-400">
+                      {glyph}
                     </div>
-                    <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-600">
-                      {bill.utility_type && <span className="capitalize">{bill.utility_type}</span>}
-                      <span className="truncate">{propName ?? 'No property'}</span>
-                      {bill.billing_period_start && (
-                        <span className="hidden sm:inline shrink-0">{formatDate(bill.billing_period_start)} – {formatDate(bill.billing_period_end)}</span>
-                      )}
+
+                    {/* Info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="truncate text-sm font-medium text-zinc-100">
+                          {bill.vendor ?? 'Unknown vendor'}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${status.badge}`}>
+                          {status.label}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${src.cls}`}>
+                          {src.text}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-600">
+                        {bill.utility_type && <span className="capitalize">{bill.utility_type}</span>}
+                        <span className="truncate">{propName ?? 'No property'}</span>
+                        {bill.billing_period_start && (
+                          <span className="hidden sm:inline shrink-0">{formatDate(bill.billing_period_start)} – {formatDate(bill.billing_period_end)}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Amount + date */}
-                  <div className="shrink-0 text-right">
-                    <p className="text-sm font-semibold tabular-nums text-zinc-100">{formatUSD(bill.amount)}</p>
-                    <p className="mt-0.5 text-[11px] text-zinc-600">{formatDate(bill.created_at)}</p>
-                  </div>
+                    {/* Amount + date */}
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-semibold tabular-nums text-zinc-100">{formatUSD(bill.amount)}</p>
+                      <p className="mt-0.5 text-[11px] text-zinc-600">{formatDate(bill.created_at)}</p>
+                    </div>
 
-                  <svg className="h-4 w-4 shrink-0 text-zinc-700 transition group-hover:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Link>
+                    <svg className="h-4 w-4 shrink-0 text-zinc-700 transition group-hover:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+
+                  {/* Delete control */}
+                  <div className="flex shrink-0 items-center border-l border-zinc-800/60 px-2">
+                    {confirmDeleteId === bill.id ? (
+                      <div className="flex items-center gap-1 px-1">
+                        <span className="hidden text-xs text-zinc-500 sm:block">Delete?</span>
+                        <button
+                          onClick={() => handleDeleteBill(bill.id)}
+                          disabled={deletingId === bill.id}
+                          className="rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {deletingId === bill.id ? (
+                            <div className="h-3 w-3 animate-spin rounded-full border-2 border-red-400/30 border-t-red-400" />
+                          ) : 'Yes'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          disabled={deletingId === bill.id}
+                          className="rounded-md px-2 py-1 text-xs font-medium text-zinc-500 transition hover:text-zinc-300 disabled:opacity-50"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(bill.id)}
+                        aria-label={`Delete ${bill.vendor ?? 'bill'}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-md text-zinc-700 transition hover:bg-red-500/10 hover:text-red-400"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
               )
             })}
           </div>

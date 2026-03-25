@@ -75,6 +75,8 @@ export default function BillDetailPage() {
   const [assigning, setAssigning] = useState(false)
   const [pickedProp, setPickedProp] = useState('')
   const [assignError, setAssignError] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const load = async () => {
     const [{ data: b }, { data: l }, { data: p }] = await Promise.all([
@@ -116,6 +118,17 @@ export default function BillDetailPage() {
       await load()
     } finally {
       setAssigning(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    const res = await fetch(`/api/bills/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      router.push('/dashboard')
+    } else {
+      setDeleting(false)
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -373,6 +386,50 @@ export default function BillDetailPage() {
 
           </div>
         </div>
+
+        {/* ── Delete bill ── */}
+        <div className="mt-8 border-t border-zinc-800/60 pt-6">
+          {showDeleteConfirm ? (
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-5">
+              <p className="text-sm font-medium text-zinc-200">Delete this bill?</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                This action cannot be undone. The bill and all its status history will be permanently removed.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {deleting && (
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  )}
+                  {deleting ? 'Deleting…' : 'Yes, delete permanently'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={deleting}
+                  className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-red-500/10 hover:text-red-400"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Bill
+              </button>
+            </div>
+          )}
+        </div>
+
       </main>
     </div>
   )
