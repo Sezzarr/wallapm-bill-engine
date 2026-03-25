@@ -147,7 +147,7 @@ export default function BillDetailPage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-6 py-3.5">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 sm:px-6 py-3.5">
           <Link
             href="/dashboard"
             className="flex items-center gap-1 text-xs text-zinc-500 transition hover:text-zinc-300"
@@ -160,7 +160,7 @@ export default function BillDetailPage() {
           <svg className="h-4 w-4 text-zinc-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-          <span className="truncate font-mono text-xs text-zinc-600">{bill.id}</span>
+          <span className="min-w-0 truncate font-mono text-xs text-zinc-600">{bill.id}</span>
           <div className="ml-auto flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-500 text-[10px] font-black text-white">W</div>
             <span className="text-sm font-semibold text-zinc-100">WallaPM</span>
@@ -168,7 +168,7 @@ export default function BillDetailPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-8">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Hero row ── */}
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
@@ -192,7 +192,7 @@ export default function BillDetailPage() {
               )}
             </div>
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-6 py-4 text-right">
+          <div className="w-full sm:w-auto rounded-xl border border-zinc-800 bg-zinc-900/60 px-6 py-4 sm:text-right">
             <p className="text-3xl font-semibold tabular-nums text-zinc-100">{fmtUSD(bill.amount)}</p>
             <p className="mt-0.5 text-xs text-zinc-600">Total amount due</p>
           </div>
@@ -206,7 +206,7 @@ export default function BillDetailPage() {
             {/* Bill fields */}
             <section className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6">
               <h2 className="mb-5 text-xs font-semibold uppercase tracking-widest text-zinc-500">Bill Details</h2>
-              <dl className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 sm:gap-x-8">
                 <Field label="Vendor"        value={bill.vendor} />
                 <Field label="Utility Type"  value={bill.utility_type
                   ? bill.utility_type.charAt(0).toUpperCase() + bill.utility_type.slice(1)
@@ -237,7 +237,7 @@ export default function BillDetailPage() {
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="mt-4 grid grid-cols-5 gap-2">
+                  <div className="mt-4 grid grid-cols-5 gap-1 sm:gap-2">
                     {(['vendor', 'amount', 'period_start', 'period_end', 'account'] as const).map((field, i) => {
                       const weights = [0.25, 0.30, 0.20, 0.15, 0.10]
                       const labels = ['Vendor', 'Amount', 'Period start', 'Period end', 'Account']

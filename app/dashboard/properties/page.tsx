@@ -66,7 +66,7 @@ export default function PropertiesPage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 sm:gap-6 px-4 sm:px-6 py-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500 text-xs font-black text-white">
               W
@@ -102,17 +102,17 @@ export default function PropertiesPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Page heading ── */}
-        <div className="mb-7 flex items-center justify-between">
+        <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold text-zinc-100">Properties</h1>
             <p className="mt-0.5 text-sm text-zinc-500">Manage locations for bill matching and grouping.</p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

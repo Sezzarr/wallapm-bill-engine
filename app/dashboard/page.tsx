@@ -106,7 +106,7 @@ export default function DashboardPage() {
 
       {/* ── Header ── */}
       <header className="sticky top-0 z-20 border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-6 py-3.5">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 sm:gap-6 px-4 sm:px-6 py-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-indigo-500 text-xs font-black text-white">
               W
@@ -145,7 +145,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Page heading ── */}
         <div className="mb-7">
@@ -174,25 +174,27 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Toolbar ── */}
-        <div className="mb-5 flex flex-wrap items-center gap-2">
-          <nav className="flex items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
-            {FILTERS.map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                  filter === f
-                    ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </nav>
+        <div className="mb-5 flex items-center gap-2">
+          <div className="min-w-0 flex-1 overflow-x-auto">
+            <nav className="flex w-max items-center gap-0.5 rounded-lg border border-zinc-800 bg-zinc-900 p-1">
+              {FILTERS.map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                    filter === f
+                      ? 'bg-zinc-700/80 text-zinc-100 shadow-sm'
+                      : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </nav>
+          </div>
           <button
             onClick={() => setShowModal(true)}
-            className="ml-auto flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
+            className="shrink-0 flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -230,7 +232,7 @@ export default function DashboardPage() {
                 <Link
                   key={bill.id}
                   href={`/dashboard/bills/${bill.id}`}
-                  className="group flex items-center gap-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-5 py-3.5 transition hover:border-zinc-700 hover:bg-zinc-900"
+                  className="group flex items-center gap-3 sm:gap-4 rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-4 sm:px-5 py-3.5 transition hover:border-zinc-700 hover:bg-zinc-900"
                 >
                   {/* Utility glyph */}
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700/60 bg-zinc-800 text-xs font-bold text-zinc-400">
@@ -250,11 +252,11 @@ export default function DashboardPage() {
                         {src.text}
                       </span>
                     </div>
-                    <div className="mt-0.5 flex items-center gap-3 text-xs text-zinc-600">
+                    <div className="mt-0.5 flex items-center gap-2 text-xs text-zinc-600">
                       {bill.utility_type && <span className="capitalize">{bill.utility_type}</span>}
-                      <span>{propName ?? 'No property'}</span>
+                      <span className="truncate">{propName ?? 'No property'}</span>
                       {bill.billing_period_start && (
-                        <span>{formatDate(bill.billing_period_start)} – {formatDate(bill.billing_period_end)}</span>
+                        <span className="hidden sm:inline shrink-0">{formatDate(bill.billing_period_start)} – {formatDate(bill.billing_period_end)}</span>
                       )}
                     </div>
                   </div>

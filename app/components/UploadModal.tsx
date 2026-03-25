@@ -122,7 +122,7 @@ export default function UploadModal({
   const isDragging = state.phase === 'dragging'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -130,7 +130,12 @@ export default function UploadModal({
       />
 
       {/* Sheet */}
-      <div className="relative w-full max-w-md overflow-y-auto rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl shadow-black/60" style={{ maxHeight: 'min(90vh, 700px)' }}>
+      <div className="relative w-full sm:max-w-md overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl shadow-black/60" style={{ maxHeight: 'min(92vh, 700px)' }}>
+
+        {/* Drag handle (mobile only) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="h-1 w-10 rounded-full bg-zinc-700" />
+        </div>
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
@@ -209,7 +214,7 @@ export default function UploadModal({
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 onClick={() => inputRef.current?.click()}
-                className={`relative cursor-pointer select-none rounded-xl border-2 border-dashed p-7 text-center transition-all ${
+                className={`relative cursor-pointer select-none rounded-xl border-2 border-dashed p-5 sm:p-7 text-center transition-all ${
                   isDragging
                     ? 'border-indigo-500 bg-indigo-500/5 scale-[1.01]'
                     : file
