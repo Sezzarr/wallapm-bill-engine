@@ -101,6 +101,18 @@ export default function DashboardPage() {
     processed: bills.filter(b => b.status === 'processed').length,
   }
 
+  const handleExport = () => {
+    const url = filter === 'all'
+      ? '/api/bills/export'
+      : `/api/bills/export?status=${filter}`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = ''
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
 
@@ -192,6 +204,17 @@ export default function DashboardPage() {
               ))}
             </nav>
           </div>
+          <button
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="shrink-0 flex items-center gap-1.5 rounded-lg border border-zinc-700 px-3 sm:px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-zinc-600 hover:text-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">Export</span>
+          </button>
           <button
             onClick={() => setShowModal(true)}
             className="shrink-0 flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 active:scale-95"
