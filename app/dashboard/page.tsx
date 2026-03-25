@@ -3,8 +3,19 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/src/lib/supabase'
 import UploadModal from '@/app/components/UploadModal'
+
+const BillAnalytics = dynamic(() => import('@/app/components/BillAnalytics'), {
+  ssr: false,
+  loading: () => (
+    <div className="grid gap-4 lg:grid-cols-3">
+      <div className="h-[268px] animate-pulse rounded-xl border border-zinc-800/60 bg-zinc-900/40 lg:col-span-2" />
+      <div className="h-[268px] animate-pulse rounded-xl border border-zinc-800/60 bg-zinc-900/40" />
+    </div>
+  ),
+})
 
 type Bill = {
   id: string
@@ -71,6 +82,7 @@ export default function DashboardPage() {
   const [email, setEmail] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [analyticsOpen, setAnalyticsOpen] = useState(true)
 
   const load = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -196,6 +208,25 @@ export default function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* ── Analytics ── */}
+        {!loading && bills.length > 0 && (
+          <div className="mb-7">
+            <button
+              onClick={() => setAnalyticsOpen(v => !v)}
+              className="mb-4 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-500 transition-colors hover:text-zinc-300"
+            >
+              <svg
+                className={`h-3.5 w-3.5 transition-transform duration-200 ${analyticsOpen ? 'rotate-0' : '-rotate-90'}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+              Analytics
+            </button>
+            {analyticsOpen && <BillAnalytics bills={bills} />}
+          </div>
+        )}
 
         {/* ── Toolbar ── */}
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center">
